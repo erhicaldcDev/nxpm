@@ -6,10 +6,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <dirent.h>
+#include <dirent.h> 
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
 #include <errno.h>
+
 #define MIRROR_URL "https://raw.githubusercontent.com/erhicaldcDev/nxpm/refs/heads/main/mirrorlist/mirrorlist.json"
 #define ROOT_DIR "/var/lib/nxpm"
 #define DB_PATH "/var/lib/nxpm/installed.json"
@@ -17,6 +18,7 @@
 #define CACHE_DIR "/var/cache/nxpm/sources"
 #define BUILD_DIR "/tmp/nxpm-build"
 #define STAGE_DIR "/tmp/nxpm-build/stage"
+
 #define RESET   "\033[0m"
 #define BOLD    "\033[1m"
 #define RED     "\033[31m"
@@ -26,11 +28,11 @@
 #define CYAN    "\033[36m"
 #define MAGENTA "\033[35m"
 #define WHITE   "\033[37m"
+
 #define ICON_CHECK  "\xE2\x9C\x93"
 #define ICON_CROSS  "\xE2\x9C\x97"
 #define ICON_ARROW  "\xE2\x9E\x9C"
 #define ICON_BOX    "\xE2\x96\x88"
-#define ICON_TRASH  "\xF0\x9F\x97\x91"
 
 void print_banner() {
     printf(CYAN BOLD);
@@ -39,7 +41,7 @@ void print_banner() {
     printf("|  \\| |  \\  / | |_) | |\\/| |\n");
     printf("| |\\  |  /  \\ |  __/| |  | |\n");
     printf("|_| \\_| /_/\\_\\|_|   |_|  |_|\n");
-    printf("        v1.0 (LFS Edition)\n");
+    printf("                v1.1 \n");
     printf(RESET "\n");
 }
 
@@ -86,14 +88,11 @@ static size_t write_file_cb(void *ptr, size_t size, size_t nmemb, FILE *stream) 
 
 static int progress_cb(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
     (void)clientp; (void)ultotal; (void)ulnow;
-    
     if (dltotal <= 0) return 0;
-
     const int bar_width = 30;
     double fraction = (double)dlnow / (double)dltotal;
     int filled = (int)(fraction * bar_width);
     int percentage = (int)(fraction * 100);
-
     printf("\r" CYAN " [DL] " RESET "[");
     for (int i = 0; i < bar_width; i++) {
         if (i < filled) printf(ICON_BOX);
@@ -101,7 +100,6 @@ static int progress_cb(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl
     }
     printf("] %3d%%", percentage);
     fflush(stdout);
-
     return 0;
 }
 
@@ -149,6 +147,7 @@ static void download_url(const char *url, const char *output_path) {
 
     pagefile = fopen(output_path, "wb");
     if (!pagefile) log_fail("Cannot open file for download: %s", output_path);
+    // curl fixes
     curl_easy_setopt(curl_handle, CURLOPT_URL, url);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_file_cb);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
@@ -156,6 +155,8 @@ static void download_url(const char *url, const char *output_path) {
     curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0L);
     curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "nxpm/1.0");
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
 
     printf("\n");
     res = curl_easy_perform(curl_handle);
@@ -175,6 +176,7 @@ static void cmd_update() {
     log_header("SYSTEM UPDATE");
     ensure_dir(ROOT_DIR);
     log_info("Fetching repository manifest...");
+    log_info("URL: %s", MIRROR_URL);
     download_url(MIRROR_URL, MANIFEST_PATH);
     log_success("Repository updated.");
 }
@@ -201,7 +203,7 @@ static cJSON *get_package_info(const char *pkg_name, cJSON *manifest) {
     return NULL;
 }
 
-static void install_package(const char *pkg_name, cJSON *manifest, cJSON *db);
+static void install_package(const char *pkg_name, cJSON *manifest, cJSON *db, int edit_mode);
 
 static void resolve_dependencies(cJSON *pkg, cJSON *manifest, cJSON *db) {
     cJSON *deps = cJSON_GetObjectItemCaseSensitive(pkg, "dependencies");
@@ -210,10 +212,50 @@ static void resolve_dependencies(cJSON *pkg, cJSON *manifest, cJSON *db) {
         cJSON_ArrayForEach(dep, deps) {
             if (cJSON_IsString(dep)) {
                 log_info("Dependency required: %s", dep->valuestring);
-                install_package(dep->valuestring, manifest, db);
+                install_package(dep->valuestring, manifest, db, 0);
             }
         }
     }
+}
+
+static void edit_build_commands(cJSON *pkg) {
+    log_step("EDIT", "Opening build configuration...");
+    const char *temp_path = "/tmp/nxpm_build_edit.sh";
+    
+    FILE *f = fopen(temp_path, "w");
+    if (!f) log_fail("Cannot create temp file for editing");
+    
+    cJSON *commands = cJSON_GetObjectItemCaseSensitive(pkg, "build_commands");
+    cJSON *cmd_item = NULL;
+    cJSON_ArrayForEach(cmd_item, commands) {
+        if (cJSON_IsString(cmd_item)) {
+            fprintf(f, "%s\n", cmd_item->valuestring);
+        }
+    }
+    fclose(f);
+
+    char *editor = getenv("EDITOR");
+    if (!editor) editor = "vi";
+    
+    char sys_cmd[512];
+    snprintf(sys_cmd, sizeof(sys_cmd), "%s %s", editor, temp_path);
+    if (system(sys_cmd) != 0) log_fail("Editor returned error");
+
+    f = fopen(temp_path, "r");
+    if (!f) log_fail("Cannot read back edited configuration");
+
+    cJSON *new_commands = cJSON_CreateArray();
+    char line[2048];
+    while (fgets(line, sizeof(line), f)) {
+        line[strcspn(line, "\n")] = 0;
+        if (strlen(line) > 0) {
+            cJSON_AddItemToArray(new_commands, cJSON_CreateString(line));
+        }
+    }
+    fclose(f);
+
+    cJSON_ReplaceItemInObject(pkg, "build_commands", new_commands);
+    log_success("Build configuration updated.");
 }
 
 static void execute_build(cJSON *pkg) {
@@ -244,7 +286,6 @@ static void execute_build(cJSON *pkg) {
     snprintf(cmd, sizeof(cmd), "rm -rf %s && mkdir -p %s", STAGE_DIR, STAGE_DIR);
     if (system(cmd) != 0) log_fail("Clean stage dir failed");
 
-    // Znajdź rozpakowany katalog
     char src_dir[1024] = {0};
     struct dirent *de;
     DIR *dr = opendir(BUILD_DIR);
@@ -258,9 +299,7 @@ static void execute_build(cJSON *pkg) {
     closedir(dr);
     
     if (src_dir[0] == 0) log_fail("Could not find extracted source directory.");
-
     if (chdir(src_dir) != 0) log_fail("Failed to enter source directory");
-
     if (setenv("DESTDIR", STAGE_DIR, 1) != 0) log_fail("Failed to set DESTDIR");
 
     cJSON *commands = cJSON_GetObjectItemCaseSensitive(pkg, "build_commands");
@@ -294,8 +333,7 @@ static void install_files_to_root() {
     log_step("INSTALL", "Moving files from stage to system root...");
     char cmd[1024];
     snprintf(cmd, sizeof(cmd), "cp -a %s/* / 2>/dev/null", STAGE_DIR);
-    if (system(cmd) != 0) {
-    }
+    if (system(cmd) != 0) {} 
 }
 
 static void register_package(cJSON *pkg, cJSON *db) {
@@ -313,7 +351,7 @@ static void register_package(cJSON *pkg, cJSON *db) {
     install_files_to_root();
 }
 
-static void install_package(const char *pkg_name, cJSON *manifest, cJSON *db) {
+static void install_package(const char *pkg_name, cJSON *manifest, cJSON *db, int edit_mode) {
     if (is_installed(pkg_name, db)) {
         printf(YELLOW " [SKIP] " RESET "Package %s is already installed.\n", pkg_name);
         return;
@@ -325,6 +363,11 @@ static void install_package(const char *pkg_name, cJSON *manifest, cJSON *db) {
     }
 
     log_header(pkg_name);
+
+    if (edit_mode) {
+        edit_build_commands(pkg);
+    }
+
     resolve_dependencies(pkg, manifest, db);
 
     execute_build(pkg);
@@ -333,7 +376,7 @@ static void install_package(const char *pkg_name, cJSON *manifest, cJSON *db) {
     log_success("Package %s installed successfully.", pkg_name);
 }
 
-static void cmd_install(const char *pkg_name) {
+static void cmd_install(const char *pkg_name, int edit_mode) {
     char *manifest_data = read_file(MANIFEST_PATH);
     if (!manifest_data) log_fail("Manifest not found. Run 'nxpm update' first.");
     cJSON *manifest = cJSON_Parse(manifest_data);
@@ -343,7 +386,7 @@ static void cmd_install(const char *pkg_name) {
     char *db_data = read_file(DB_PATH);
     cJSON *db = db_data ? cJSON_Parse(db_data) : cJSON_CreateArray();
 
-    install_package(pkg_name, manifest, db);
+    install_package(pkg_name, manifest, db, edit_mode);
 
     cJSON_Delete(manifest);
     cJSON_Delete(db);
@@ -371,7 +414,7 @@ static void cmd_remove(const char *pkg_name) {
             log_info("Deleting files for %s...", pkg_name);
             cJSON_ArrayForEach(f, files) {
                 if (unlink(f->valuestring) != 0) {
-                    printf(YELLOW " [WARN] " RESET "Could not remove %s (Manual cleanup may be needed)\n", f->valuestring);
+                    printf(YELLOW " [WARN] " RESET "Could not remove %s\n", f->valuestring);
                 }
             }
             cJSON_DeleteItemFromArray(db, index);
@@ -421,18 +464,35 @@ int main(int argc, char *argv[]) {
         print_banner();
         printf("Usage: nxpm [command] <args>\n\n");
         printf("Commands:\n");
-        printf("  update           Fetch latest package list\n");
-        printf("  install <pkg>    Install a package from source\n");
-        printf("  remove <pkg>     Uninstall a package\n");
-        printf("  list             Show installed packages\n");
+        printf("  update                     Fetch latest package list\n");
+        printf("  install [--edit-conf] <pkg> Install a package\n");
+        printf("  remove <pkg>               Uninstall a package\n");
+        printf("  list                       Show installed packages\n");
         return 1;
     }
 
     if (strcmp(argv[1], "update") == 0) {
         cmd_update();
     } else if (strcmp(argv[1], "install") == 0) {
-        if (argc < 3) log_fail("Usage: nxpm install <package_name>");
-        cmd_install(argv[2]);
+        int edit_conf = 0;
+        char *pkg_name = NULL;
+
+        if (argc >= 4) {
+            if (strcmp(argv[2], "--edit-conf") == 0) {
+                edit_conf = 1;
+                pkg_name = argv[3];
+            } else if (strcmp(argv[3], "--edit-conf") == 0) {
+                edit_conf = 1;
+                pkg_name = argv[2];
+            } else {
+                 log_fail("Invalid arguments for install");
+            }
+        } else if (argc >= 3) {
+            pkg_name = argv[2];
+        } else {
+            log_fail("Usage: nxpm install [--edit-conf] <package_name>");
+        }
+        cmd_install(pkg_name, edit_conf);
     } else if (strcmp(argv[1], "remove") == 0) {
         if (argc < 3) log_fail("Usage: nxpm remove <package_name>");
         cmd_remove(argv[2]);
