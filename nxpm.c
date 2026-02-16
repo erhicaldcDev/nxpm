@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <dirent.h> 
 #include <curl/curl.h>
-#include <cjson/cJSON.h>
+#include "cJSON.h"
 #include <errno.h>
 
 #define MIRROR_URL "https://raw.githubusercontent.com/erhicaldcDev/nxpm/refs/heads/main/mirrorlist/mirrorlist.json"
