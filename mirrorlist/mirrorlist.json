@@ -63,5 +63,269 @@
             "make",
             "make install DESTDIR=$DESTDIR"
         ]
+    },
+    {
+        "name": "readline",
+        "version": "8.2",
+        "source_url": "https://ftp.gnu.org/gnu/readline/readline-8.2.tar.gz",
+        "dependencies": ["ncurses"],
+        "build_commands": [
+            "./configure --prefix=/usr --disable-static",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "bash",
+        "version": "5.2.15",
+        "source_url": "https://ftp.gnu.org/gnu/bash/bash-5.2.15.tar.gz",
+        "dependencies": ["readline", "ncurses"],
+        "build_commands": [
+            "./configure --prefix=/usr --without-bash-malloc",
+            "make",
+            "make install DESTDIR=$DESTDIR",
+            "ln -sv bash $DESTDIR/usr/bin/sh"
+        ]
+    },
+    {
+        "name": "coreutils",
+        "version": "9.4",
+        "source_url": "https://ftp.gnu.org/gnu/coreutils/coreutils-9.4.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr --enable-no-install-program=kill,uptime",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "openssl",
+        "version": "3.1.4",
+        "source_url": "https://www.openssl.org/source/openssl-3.1.4.tar.gz",
+        "dependencies": ["zlib"],
+        "build_commands": [
+            "./config --prefix=/usr --openssldir=/etc/ssl --libdir=lib shared zlib-dynamic",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "curl",
+        "version": "8.4.0",
+        "source_url": "https://curl.se/download/curl-8.4.0.tar.gz",
+        "dependencies": ["openssl", "zlib"],
+        "build_commands": [
+            "./configure --prefix=/usr --with-openssl --with-zlib",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "xz",
+        "version": "5.4.5",
+        "source_url": "https://tukaani.org/xz/xz-5.4.5.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr --disable-static",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "bzip2",
+        "version": "1.0.8",
+        "source_url": "https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "make -f Makefile-libbz2_so",
+            "make clean",
+            "make",
+            "make install PREFIX=$DESTDIR/usr"
+        ]
+    },
+    {
+        "name": "tar",
+        "version": "1.35",
+        "source_url": "https://ftp.gnu.org/gnu/tar/tar-1.35.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "grep",
+        "version": "3.11",
+        "source_url": "https://ftp.gnu.org/gnu/grep/grep-3.11.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "sed",
+        "version": "4.9",
+        "source_url": "https://ftp.gnu.org/gnu/sed/sed-4.9.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "gawk",
+        "version": "5.3.0",
+        "source_url": "https://ftp.gnu.org/gnu/gawk/gawk-5.3.0.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "nano",
+        "version": "7.2",
+        "source_url": "https://www.nano-editor.org/dist/v7/nano-7.2.tar.xz",
+        "dependencies": ["ncurses"],
+        "build_commands": [
+            "./configure --prefix=/usr --enable-utf8",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "vim",
+        "version": "9.0.2100",
+        "source_url": "https://github.com/vim/vim/archive/v9.0.2100.tar.gz",
+        "dependencies": ["ncurses"],
+        "build_commands": [
+            "./configure --prefix=/usr --with-features=huge --enable-multibyte --disable-gui",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "libevent",
+        "version": "2.1.12",
+        "source_url": "https://github.com/libevent/libevent/releases/download/release-2.1.12-stable/libevent-2.1.12-stable.tar.gz",
+        "dependencies": ["openssl"],
+        "build_commands": [
+            "./configure --prefix=/usr --disable-static",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "tmux",
+        "version": "3.3a",
+        "source_url": "https://github.com/tmux/tmux/releases/download/3.3a/tmux-3.3a.tar.gz",
+        "dependencies": ["libevent", "ncurses"],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "make",
+        "version": "4.4.1",
+        "source_url": "https://ftp.gnu.org/gnu/make/make-4.4.1.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "git",
+        "version": "2.43.0",
+        "source_url": "https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.43.0.tar.xz",
+        "dependencies": ["curl", "zlib", "openssl", "expat"],
+        "build_commands": [
+            "./configure --prefix=/usr --with-curl --with-openssl --with-zlib",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "expat",
+        "version": "2.5.0",
+        "source_url": "https://github.com/libexpat/libexpat/releases/download/R_2_5_0/expat-2.5.0.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr --disable-static",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "which",
+        "version": "2.21",
+        "source_url": "https://ftp.gnu.org/gnu/which/which-2.21.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "figlet",
+        "version": "2.2.5",
+        "source_url": "http://ftp.figlet.org/pub/figlet/program/unix/figlet-2.2.5.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "make prefix=/usr",
+            "make install DESTDIR=$DESTDIR prefix=/usr"
+        ]
+    },
+    {
+        "name": "sl",
+        "version": "5.02",
+        "source_url": "https://github.com/mtoyoda/sl/archive/5.02.tar.gz",
+        "dependencies": ["ncurses"],
+        "build_commands": [
+            "make",
+            "install -m 755 -D sl $DESTDIR/usr/bin/sl"
+        ]
+    },
+    {
+        "name": "bc",
+        "version": "1.07.1",
+        "source_url": "https://ftp.gnu.org/gnu/bc/bc-1.07.1.tar.gz",
+        "dependencies": ["readline"],
+        "build_commands": [
+            "./configure --prefix=/usr --with-readline",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "file",
+        "version": "5.45",
+        "source_url": "http://ftp.astron.com/pub/file/file-5.45.tar.gz",
+        "dependencies": ["zlib"],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "findutils",
+        "version": "4.9.0",
+        "source_url": "https://ftp.gnu.org/gnu/findutils/findutils-4.9.0.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
     }
 ]
