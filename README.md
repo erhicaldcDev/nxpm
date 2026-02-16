@@ -1,0 +1,2 @@
+# nxpm
+NexaPackageManager
