@@ -41,7 +41,7 @@ void print_banner() {
     printf("|  \\| |  \\  / | |_) | |\\/| |\n");
     printf("| |\\  |  /  \\ |  __/| |  | |\n");
     printf("|_| \\_| /_/\\_\\|_|   |_|  |_|\n");
-    printf("                v1.1 \n");
+    printf("       v1.2 (bootstrapped) \n");
     printf(RESET "\n");
 }
 
