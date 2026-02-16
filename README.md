@@ -17,9 +17,41 @@
 
 ## 🛠️ Requirements
 
-* **Compiler:** GCC 10+ or Clang
-* **Libraries:** * `libcurl` (Network operations)
-* `cJSON` (Manifest parsing)
+* **Compiler:** GCC 10+ or Clang  
+* **Libraries:** 
+  * `libcurl` (Network operations)  
+  * `cJson` (JSON parsing)  
+  * `vi` (editor)
+
+### Installation
+
+#### Debian / Ubuntu
+```bash
+sudo apt update
+sudo apt install libcurl4-openssl-dev cjson vi
+```
+
+#### ArchLinux
+
+```bash
+sudo pacman -Syu
+sudo pacman -S vi cjson curl libcurl
+```
+
+#### Fedora / RHEL
+
+```bash
+sudo dnf install libcurl-devel cjson vi
+```
+
+#### Windows (WSL)
+
+* WSL Ubuntu / Debian:
+
+```bash
+sudo apt update
+sudo apt install libcurl4-openssl-dev cjson vi
+```
 
 
 * **Build System:** GNU Make
