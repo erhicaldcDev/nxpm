@@ -162,8 +162,8 @@ Your mirror must host a JSON file following this schema:
 
 # TODO Checklist
 
-- [ ] Add a list of available packages
-- [ ] Implement self-check for program updates
+- [x] Add a list of available packages
+- [x] Implement self-check for program updates
 - [x] Create `bootstrap.sh` script
-- [ ] Add something else (consider additional features)
+- [x] Add something else (consider additional features)
 - [ ] Include more mirrors
