@@ -23,7 +23,7 @@
   * `cJson` (JSON parsing)  
   * `vi` (editor)
 
-### Installation
+### Installating packages on different OS'es:
 
 #### Debian / Ubuntu
 ```bash
@@ -58,7 +58,7 @@ sudo apt install libcurl4-openssl-dev cjson vi
 
 ## 📦 Installation (Bootstrap)
 
-In a fresh LFS environment, you must bootstrap `nxpm` manually:
+In a fresh LFS environment, you can bootstrap `nxpm` manually:
 
 ```bash
 git clone https://github.com/your-repo/nxpm.git
@@ -67,6 +67,14 @@ make
 # Note: Initial install usually requires manual placement
 sudo cp nxpm /usr/local/bin/
 
+```
+
+Or you can install **NXPM** automatically using the bootstrap script. Requires `gcc`, `make`, and `curl`.
+
+Run the following command in your terminal:
+
+```bash
+curl -sL https://raw.githubusercontent.com/erhicaldcDev/nxpm/main/bootstrap.sh | sudo bash
 ```
 
 ## ⚙️ Configuration
