@@ -127,7 +127,7 @@ nxpm list
 
 ---
 
-## 📝 Remote Manifest Format (`nxpm-packages.json`)
+## 📝 Remote Manifest Format (`mirrorlist/mirrorlist.json`)
 
 Your mirror must host a JSON file following this schema:
 
