@@ -63,9 +63,8 @@ In a fresh LFS environment, you can bootstrap `nxpm` manually:
 ```bash
 git clone https://github.com/your-repo/nxpm.git
 cd nxpm
-make
-# Note: Initial install usually requires manual placement
-sudo cp nxpm /usr/local/bin/
+chmod +x bootstrap.sh
+sudo bash bootstrap.sh
 
 ```
 
