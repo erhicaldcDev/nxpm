@@ -117,3 +117,5 @@ Your mirror must host a JSON file following this schema:
 ## ⚖️ License & Safety
 
 **nxpm** is provided "as is". Since it executes build scripts as root, always ensure the `MIRROR_LIST_URL` is a trusted source. In LFS, a broken build script can overwrite critical system symlinks.
+
+### REMEMBER! THIS PROJECT IS CURRENTLY IN PROGRESS. I AM NOT RESPONSIBLE FOR ANY CURRENT BUGS
