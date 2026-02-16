@@ -11,7 +11,12 @@
 #include "cJSON.h"
 #include <errno.h>
 
-#define MIRROR_URL "https://raw.githubusercontent.com/erhicaldcDev/nxpm/refs/heads/main/mirrorlist/mirrorlist.json"
+#define NXPM_VERSION "1.3"
+
+#define REPO_BASE "https://raw.githubusercontent.com/erhicaldcDev/nxpm/refs/heads/main"
+#define MIRROR_URL REPO_BASE "/mirrorlist/mirrorlist.json"
+#define VERSION_URL REPO_BASE "/version.txt"
+
 #define ROOT_DIR "/var/lib/nxpm"
 #define DB_PATH "/var/lib/nxpm/installed.json"
 #define MANIFEST_PATH "/var/lib/nxpm/packages.json"
@@ -33,6 +38,7 @@
 #define ICON_CROSS  "\xE2\x9C\x97"
 #define ICON_ARROW  "\xE2\x9E\x9C"
 #define ICON_BOX    "\xE2\x96\x88"
+#define ICON_CLOUD  "\xE2\x98\x81"
 
 void print_banner() {
     printf(CYAN BOLD);
@@ -41,7 +47,7 @@ void print_banner() {
     printf("|  \\| |  \\  / | |_) | |\\/| |\n");
     printf("| |\\  |  /  \\ |  __/| |  | |\n");
     printf("|_| \\_| /_/\\_\\|_|   |_|  |_|\n");
-    printf("       v1.2 (bootstrapped) \n");
+    printf("        v%s (bootstraped)\n", NXPM_VERSION);
     printf(RESET "\n");
 }
 
@@ -82,23 +88,49 @@ void log_fail(const char *fmt, ...) {
     exit(1);
 }
 
+static void format_size(double size, char *out_buf) {
+    const char *units[] = {"B", "KB", "MB", "GB"};
+    int i = 0;
+    while (size > 1024 && i < 3) {
+        size /= 1024;
+        i++;
+    }
+    sprintf(out_buf, "%.2f %s", size, units[i]);
+}
+
 static size_t write_file_cb(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     return fwrite(ptr, size, nmemb, stream);
+}
+
+static size_t write_memory_cb(void *contents, size_t size, size_t nmemb, void *userp) {
+    size_t realsize = size * nmemb;
+    char **p_response = (char **)userp;
+    *p_response = realloc(*p_response, strlen(*p_response ? *p_response : "") + realsize + 1);
+    if(*p_response == NULL) return 0;
+    strncat(*p_response, (char *)contents, realsize);
+    return realsize;
 }
 
 static int progress_cb(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
     (void)clientp; (void)ultotal; (void)ulnow;
     if (dltotal <= 0) return 0;
-    const int bar_width = 30;
+    
+    const int bar_width = 25;
     double fraction = (double)dlnow / (double)dltotal;
     int filled = (int)(fraction * bar_width);
     int percentage = (int)(fraction * 100);
+
+    char current_fmt[32];
+    char total_fmt[32];
+    format_size((double)dlnow, current_fmt);
+    format_size((double)dltotal, total_fmt);
+
     printf("\r" CYAN " [DL] " RESET "[");
     for (int i = 0; i < bar_width; i++) {
         if (i < filled) printf(ICON_BOX);
         else printf(" ");
     }
-    printf("] %3d%%", percentage);
+    printf("] %3d%% (%s / %s)", percentage, current_fmt, total_fmt);
     fflush(stdout);
     return 0;
 }
@@ -147,14 +179,14 @@ static void download_url(const char *url, const char *output_path) {
 
     pagefile = fopen(output_path, "wb");
     if (!pagefile) log_fail("Cannot open file for download: %s", output_path);
-    // curl fixes
+
     curl_easy_setopt(curl_handle, CURLOPT_URL, url);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_file_cb);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
     curl_easy_setopt(curl_handle, CURLOPT_XFERINFOFUNCTION, progress_cb);
     curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0L);
     curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "nxpm/1.0");
+    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "nxpm/1.3");
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
 
@@ -179,6 +211,46 @@ static void cmd_update() {
     log_info("URL: %s", MIRROR_URL);
     download_url(MIRROR_URL, MANIFEST_PATH);
     log_success("Repository updated.");
+}
+
+static void cmd_check_self_update() {
+    log_header("SELF-CHECK");
+    log_info("Current Version: " BOLD WHITE "%s" RESET, NXPM_VERSION);
+    log_info("Checking remote version...");
+
+    CURL *curl;
+    CURLcode res;
+    char *response = NULL;
+
+    curl = curl_easy_init();
+    if(curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, VERSION_URL);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_cb);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "nxpm/1.3");
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        
+        res = curl_easy_perform(curl);
+        if(res != CURLE_OK) {
+            log_fail("Check failed: %s", curl_easy_strerror(res));
+        }
+        curl_easy_cleanup(curl);
+    }
+
+    if (response) {
+        response[strcspn(response, "\n")] = 0;
+        
+        if (strcmp(response, NXPM_VERSION) == 0) {
+            log_success("NXPM is up to date (v%s).", NXPM_VERSION);
+        } else {
+            printf(YELLOW BOLD " [!] " RESET "New version available: " BOLD GREEN "v%s" RESET "\n", response);
+            printf("     Run the bootstrap script to upgrade.\n");
+        }
+        free(response);
+    } else {
+        log_fail("Empty response from server.");
+    }
 }
 
 static int is_installed(const char *pkg_name, cJSON *db) {
@@ -369,7 +441,6 @@ static void install_package(const char *pkg_name, cJSON *manifest, cJSON *db, in
     }
 
     resolve_dependencies(pkg, manifest, db);
-
     execute_build(pkg);
     register_package(pkg, db);
     
@@ -435,7 +506,7 @@ static void cmd_remove(const char *pkg_name) {
     free(db_data);
 }
 
-static void cmd_list() {
+static void cmd_list_installed() {
     char *db_data = read_file(DB_PATH);
     if (!db_data) {
         log_info("No packages installed.");
@@ -444,19 +515,49 @@ static void cmd_list() {
     cJSON *db = cJSON_Parse(db_data);
     cJSON *item = NULL;
 
-    printf("\n" BOLD WHITE "%-25s %-15s" RESET "\n", "PACKAGE NAME", "VERSION");
-    printf(BLUE "---------------------------------------------" RESET "\n");
+    printf("\n" BOLD WHITE " %-25s %-15s" RESET "\n", "INSTALLED PACKAGE", "VERSION");
+    printf(BLUE " ---------------------------------------------" RESET "\n");
 
     cJSON_ArrayForEach(item, db) {
         printf(" %-24s %-15s\n", 
             cJSON_GetObjectItem(item, "name")->valuestring,
             cJSON_GetObjectItem(item, "version")->valuestring);
     }
-    printf(BLUE "---------------------------------------------" RESET "\n");
+    printf(BLUE " ---------------------------------------------" RESET "\n");
     printf(" Total: %d packages\n\n", cJSON_GetArraySize(db));
 
     cJSON_Delete(db);
     free(db_data);
+}
+
+static void cmd_list_online() {
+    char *data = read_file(MANIFEST_PATH);
+    if (!data) {
+        log_fail("Manifest not found. Run 'nxpm update' first.");
+        return;
+    }
+    cJSON *manifest = cJSON_Parse(data);
+    cJSON *item = NULL;
+    char *db_data = read_file(DB_PATH);
+    cJSON *db = db_data ? cJSON_Parse(db_data) : cJSON_CreateArray();
+
+    printf("\n" BOLD WHITE " %-25s %-15s %-10s" RESET "\n", "AVAILABLE PACKAGE", "VERSION", "STATUS");
+    printf(BLUE " --------------------------------------------------------" RESET "\n");
+
+    cJSON_ArrayForEach(item, manifest) {
+        const char *name = cJSON_GetObjectItem(item, "name")->valuestring;
+        const char *ver = cJSON_GetObjectItem(item, "version")->valuestring;
+        int installed = is_installed(name, db);
+
+        printf(" %-24s %-15s %s\n", name, ver, installed ? GREEN "Installed" RESET : WHITE "Available" RESET);
+    }
+    printf(BLUE " --------------------------------------------------------" RESET "\n");
+    printf(" Total available: %d\n\n", cJSON_GetArraySize(manifest));
+
+    cJSON_Delete(manifest);
+    cJSON_Delete(db);
+    free(data);
+    if (db_data) free(db_data);
 }
 
 int main(int argc, char *argv[]) {
@@ -465,14 +566,20 @@ int main(int argc, char *argv[]) {
         printf("Usage: nxpm [command] <args>\n\n");
         printf("Commands:\n");
         printf("  update                     Fetch latest package list\n");
+        printf("  update --check-nxpm-update Check for self-updates\n");
         printf("  install [--edit-conf] <pkg> Install a package\n");
         printf("  remove <pkg>               Uninstall a package\n");
         printf("  list                       Show installed packages\n");
+        printf("  list --online              Show all available packages\n");
         return 1;
     }
 
     if (strcmp(argv[1], "update") == 0) {
-        cmd_update();
+        if (argc >= 3 && strcmp(argv[2], "--check-nxpm-update") == 0) {
+            cmd_check_self_update();
+        } else {
+            cmd_update();
+        }
     } else if (strcmp(argv[1], "install") == 0) {
         int edit_conf = 0;
         char *pkg_name = NULL;
@@ -497,7 +604,11 @@ int main(int argc, char *argv[]) {
         if (argc < 3) log_fail("Usage: nxpm remove <package_name>");
         cmd_remove(argv[2]);
     } else if (strcmp(argv[1], "list") == 0) {
-        cmd_list();
+        if (argc >= 3 && strcmp(argv[2], "--online") == 0) {
+            cmd_list_online();
+        } else {
+            cmd_list_installed();
+        }
     } else {
         log_fail("Unknown command: %s", argv[1]);
     }
