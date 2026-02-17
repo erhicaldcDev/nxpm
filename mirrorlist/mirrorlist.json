@@ -530,7 +530,7 @@
     {
         "name": "zip",
         "version": "3.0",
-        "source_url": "https://downloads.sourceforge.net/infozip/zip30.tar.gz",
+        "source_url": "https://github.com/erhicaldcDev/nxpm/raw/refs/heads/main/mirrorlist/zip30.tar.gz",
         "dependencies": [],
         "build_commands": [
             "make -f unix/Makefile generic",
