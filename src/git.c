@@ -28,9 +28,8 @@ int git_prepare_source(const char *url, const char *pkg_name, const char *dest_d
         snprintf(cmd, sizeof(cmd), "git clone --depth 1 %s %s", url, git_cache_path);
     }
 
-    if (system(cmd) != 0) return 1;
-
-    // Kopiowanie do katalogu roboczego
+    if (system(cmd) != 0) return 
+    
     snprintf(cmd, sizeof(cmd), "mkdir -p %s && cp -r %s/. %s/", dest_dir, git_cache_path, dest_dir);
     return system(cmd);
 }
