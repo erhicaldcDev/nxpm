@@ -693,8 +693,8 @@
     },
     {
         "name": "p7zip",
-        "version": "17.05",
-        "source_url": "https://github.com/p7zip-project/p7zip/archive/v17.05.tar.gz",
+        "version": "16.02",
+        "source_url": "https://github.com/erhicaldcDev/nxpm/raw/refs/heads/main/mirrorlist/p7zip_16.02_src_all.tar.bz2",
         "dependencies": [],
         "build_commands": [
             "make all3",
