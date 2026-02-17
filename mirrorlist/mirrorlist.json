@@ -66,8 +66,8 @@
     },
     {
         "name": "bash",
-        "version": "5.2.15",
-        "source_url": "https://ftp.gnu.org/gnu/bash/bash-5.2.15.tar.gz",
+        "version": "5.3",
+        "source_url": "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz",
         "dependencies": ["readline", "ncurses"],
         "build_commands": [
             "./configure --prefix=/usr --without-bash-malloc",
@@ -100,8 +100,8 @@
     },
     {
         "name": "curl",
-        "version": "8.4.0",
-        "source_url": "https://curl.se/download/curl-8.4.0.tar.gz",
+        "version": "8.18.0",
+        "source_url": "https://curl.se/download/curl-8.18.0.tar.gz",
         "dependencies": ["openssl", "zlib"],
         "build_commands": [
             "./configure --prefix=/usr --with-openssl --with-zlib",
