@@ -1,6 +1,6 @@
 #include "network.h"
 #include "ui.h"
-#include "config.h" // dla user agenta jesli potrzebny
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
