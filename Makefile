@@ -1,25 +1,23 @@
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -O2
+CFLAGS = -Wall -Wextra -I./src -D_GNU_SOURCE
 LDFLAGS = -lcurl
 
+SRC = $(wildcard src/*.c)
+OBJ = $(SRC:.c=.o)
 TARGET = nxpm
-SRC = nxpm.c cJSON.c
 
-.PHONY: all clean install uninstall
+.PHONY: all clean install
 
 all: $(TARGET)
 
-$(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+$(TARGET): $(OBJ)
+	$(CC) $(OBJ) -o $(TARGET) $(LDFLAGS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(TARGET)
+	rm -f src/*.o $(TARGET)
 
-install:
-	install -d /usr/local/bin
-	install -m 755 $(TARGET) /usr/local/bin/
-	mkdir -p /var/lib/nxpm
-	mkdir -p /var/cache/nxpm/sources
-
-uninstall:
-	rm -f /usr/local/bin/$(TARGET)
+install: $(TARGET)
+	cp $(TARGET) /usr/local/bin/nxpm
