@@ -33,17 +33,6 @@
         ]
     },
     {
-        "name": "htop",
-        "version": "3.2.2",
-        "source_url": "https://github.com/htop-dev/htop/releases/download/3.2.2/htop-3.2.2.tar.gz",
-        "dependencies": ["ncurses"],
-        "build_commands": [
-            "./configure --prefix=/usr",
-            "make",
-            "make install DESTDIR=$DESTDIR"
-        ]
-    },
-    {
         "name": "neofetch",
         "version": "7.1.0",
         "source_url": "https://github.com/dylanaraps/neofetch/archive/refs/tags/7.1.0.tar.gz",
@@ -296,17 +285,6 @@
         ]
     },
     {
-        "name": "bc",
-        "version": "1.07.1",
-        "source_url": "https://ftp.gnu.org/gnu/bc/bc-1.07.1.tar.gz",
-        "dependencies": ["readline"],
-        "build_commands": [
-            "./configure --prefix=/usr --with-readline",
-            "make",
-            "make install DESTDIR=$DESTDIR"
-        ]
-    },
-    {
         "name": "file",
         "version": "5.45",
         "source_url": "http://ftp.astron.com/pub/file/file-5.45.tar.gz",
@@ -321,6 +299,445 @@
         "name": "findutils",
         "version": "4.9.0",
         "source_url": "https://ftp.gnu.org/gnu/findutils/findutils-4.9.0.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "libffi",
+        "version": "3.4.4",
+        "source_url": "https://github.com/libffi/libffi/releases/download/v3.4.4/libffi-3.4.4.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr --disable-static",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "glib",
+        "version": "2.78.3",
+        "source_url": "https://download.gnome.org/sources/glib/2.78/glib-2.78.3.tar.xz",
+        "dependencies": ["libffi", "pcre2", "zlib"],
+        "build_commands": [
+            "mkdir build && cd build && meson --prefix=/usr ..",
+            "cd build && ninja",
+            "cd build && DESTDIR=$DESTDIR ninja install"
+        ]
+    },
+    {
+        "name": "elfutils",
+        "version": "0.190",
+        "source_url": "https://sourceware.org/elfutils/ftp/0.190/elfutils-0.190.tar.bz2",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr --disable-debuginfod --enable-libdebuginfod=dummy",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "gdb",
+        "version": "14.1",
+        "source_url": "https://ftp.gnu.org/gnu/gdb/gdb-14.1.tar.xz",
+        "dependencies": ["gmp", "ncurses", "python"],
+        "build_commands": [
+            "./configure --prefix=/usr --with-python=/usr/bin/python3",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "strace",
+        "version": "6.6",
+        "source_url": "https://github.com/strace/strace/releases/download/v6.6/strace-6.6.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "lsof",
+        "version": "4.99.3",
+        "source_url": "https://github.com/lsof-org/lsof/archive/4.99.3.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./Configure linux",
+            "make",
+            "install -v -m 0755 lsof $DESTDIR/usr/bin/lsof"
+        ]
+    },
+    {
+        "name": "libpng",
+        "version": "1.6.40",
+        "source_url": "https://downloads.sourceforge.net/libpng/libpng-1.6.40.tar.xz",
+        "dependencies": ["zlib"],
+        "build_commands": [
+            "./configure --prefix=/usr --disable-static",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "freetype",
+        "version": "2.13.2",
+        "source_url": "https://download.savannah.gnu.org/releases/freetype/freetype-2.13.2.tar.xz",
+        "dependencies": ["libpng"],
+        "build_commands": [
+            "./configure --prefix=/usr --enable-freetype-config",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "fontconfig",
+        "version": "2.15.0",
+        "source_url": "https://www.freedesktop.org/software/fontconfig/release/fontconfig-2.15.0.tar.xz",
+        "dependencies": ["freetype", "expat"],
+        "build_commands": [
+            "./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --disable-docs",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "popt",
+        "version": "1.19",
+        "source_url": "http://ftp.rpm.org/popt/releases/popt-1.x/popt-1.19.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "logrotate",
+        "version": "3.21.0",
+        "source_url": "https://github.com/logrotate/logrotate/releases/download/3.21.0/logrotate-3.21.0.tar.xz",
+        "dependencies": ["popt"],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "sudo",
+        "version": "1.9.15p2",
+        "source_url": "https://www.sudo.ws/dist/sudo-1.9.15p2.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr --with-all-insults --with-env-editor",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "screen",
+        "version": "4.9.1",
+        "source_url": "https://ftp.gnu.org/gnu/screen/screen-4.9.1.tar.gz",
+        "dependencies": ["ncurses"],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "tcpdump",
+        "version": "4.99.4",
+        "source_url": "https://www.tcpdump.org/release/tcpdump-4.99.4.tar.gz",
+        "dependencies": ["libpcap"],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "libpcap",
+        "version": "1.10.4",
+        "source_url": "https://www.tcpdump.org/release/libpcap-1.10.4.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "bind",
+        "version": "9.18.20",
+        "source_url": "https://downloads.isc.org/isc/bind9/9.18.20/bind-9.18.20.tar.xz",
+        "dependencies": ["openssl", "libuv"],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "libuv",
+        "version": "1.47.0",
+        "source_url": "https://dist.libuv.org/dist/v1.47.0/libuv-v1.47.0.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./autogen.sh",
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "rsync",
+        "version": "3.2.7",
+        "source_url": "https://download.samba.org/pub/rsync/src/rsync-3.2.7.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "ed",
+        "version": "1.19",
+        "source_url": "https://ftp.gnu.org/gnu/ed/ed-1.19.tar.lz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "cpio",
+        "version": "2.14",
+        "source_url": "https://ftp.gnu.org/gnu/cpio/cpio-2.14.tar.bz2",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr --enable-mt",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "zip",
+        "version": "3.0",
+        "source_url": "https://downloads.sourceforge.net/infozip/zip30.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "make -f unix/Makefile generic",
+            "make -f unix/Makefile install BINDIR=$DESTDIR/usr/bin MANDIR=$DESTDIR/usr/share/man/man1"
+        ]
+    },
+    {
+        "name": "unzip",
+        "version": "6.0",
+        "source_url": "https://downloads.sourceforge.net/infozip/unzip60.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "make -f unix/Makefile generic",
+            "make -f unix/Makefile install BINDIR=$DESTDIR/usr/bin MANDIR=$DESTDIR/usr/share/man/man1"
+        ]
+    },
+    {
+        "name": "libxml2",
+        "version": "2.12.3",
+        "source_url": "https://download.gnome.org/sources/libxml2/2.12/libxml2-2.12.3.tar.xz",
+        "dependencies": ["zlib", "xz"],
+        "build_commands": [
+            "./configure --prefix=/usr --with-python=no",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "libxslt",
+        "version": "1.1.39",
+        "source_url": "https://download.gnome.org/sources/libxslt/1.1/libxslt-1.1.39.tar.xz",
+        "dependencies": ["libxml2"],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "htop",
+        "version": "3.3.0",
+        "source_url": "https://github.com/htop-dev/htop/archive/refs/tags/3.3.0.tar.gz",
+        "dependencies": ["ncurses"],
+        "build_commands": [
+            "./autogen.sh",
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "dosfstools",
+        "version": "4.2",
+        "source_url": "https://github.com/dosfstools/dosfstools/releases/download/v4.2/dosfstools-4.2.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "jfsutils",
+        "version": "1.1.15",
+        "source_url": "http://jfs.sourceforge.net/project/pub/jfsutils-1.1.15.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "reiserfsprogs",
+        "version": "3.6.27",
+        "source_url": "https://www.kernel.org/pub/linux/utils/fs/reiserfs/reiserfsprogs-3.6.27.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "xfsprogs",
+        "version": "6.5.0",
+        "source_url": "https://www.kernel.org/pub/linux/utils/fs/xfs/xfsprogs/xfsprogs-6.5.0.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "parted",
+        "version": "3.6",
+        "source_url": "https://ftp.gnu.org/gnu/parted/parted-3.6.tar.xz",
+        "dependencies": ["util-linux"],
+        "build_commands": [
+            "./configure --prefix=/usr --disable-device-mapper",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "lzo",
+        "version": "2.10",
+        "source_url": "https://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr --enable-shared",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "pv",
+        "version": "1.8.5",
+        "source_url": "https://www.ivarch.com/programs/sources/pv-1.8.5.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "ncdu",
+        "version": "1.19",
+        "source_url": "https://dev.yorhel.nl/download/ncdu-1.19.tar.gz",
+        "dependencies": ["ncurses"],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "jq",
+        "version": "1.7",
+        "source_url": "https://github.com/jqlang/jq/releases/download/jq-1.7/jq-1.7.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr --disable-maintainer-mode",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "bc",
+        "version": "6.7.1",
+        "source_url": "https://github.com/gavinhoward/bc/releases/download/6.7.1/bc-6.7.1.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr -G",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "p7zip",
+        "version": "17.05",
+        "source_url": "https://github.com/p7zip-project/p7zip/archive/v17.05.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "make all3",
+            "make install DEST_BIN=$DESTDIR/usr/bin DEST_SHARE=$DESTDIR/usr/lib/p7zip DEST_MAN=$DESTDIR/usr/share/man"
+        ]
+    },
+    {
+        "name": "units",
+        "version": "2.22",
+        "source_url": "https://ftp.gnu.org/gnu/units/units-2.22.tar.gz",
+        "dependencies": ["readline"],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "gperf",
+        "version": "3.1",
+        "source_url": "https://ftp.gnu.org/gnu/gperf/gperf-3.1.tar.gz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "libtool",
+        "version": "2.4.7",
+        "source_url": "https://ftp.gnu.org/gnu/libtool/libtool-2.4.7.tar.xz",
+        "dependencies": [],
+        "build_commands": [
+            "./configure --prefix=/usr",
+            "make",
+            "make install DESTDIR=$DESTDIR"
+        ]
+    },
+    {
+        "name": "diffstat",
+        "version": "1.65",
+        "source_url": "https://invisible-mirror.net/archives/diffstat/diffstat-1.65.tgz",
         "dependencies": [],
         "build_commands": [
             "./configure --prefix=/usr",
