@@ -47,8 +47,6 @@ int download_file(const char *url, const char *output_path) {
     CURL *curl_handle;
     CURLcode res;
     FILE *pagefile;
-
-    // curl_global_init powinno byc w main, ale tu dla bezpieczenstwa:
     curl_global_init(CURL_GLOBAL_ALL);
     curl_handle = curl_easy_init();
     if (!curl_handle) return -1;
@@ -75,7 +73,6 @@ int download_file(const char *url, const char *output_path) {
 
     fclose(pagefile);
     curl_easy_cleanup(curl_handle);
-    // curl_global_cleanup(); // Zostawiamy dla main
 
     if (res != CURLE_OK) {
         remove(output_path);
