@@ -5,6 +5,7 @@ set -e
 
 REPO_URL="https://raw.githubusercontent.com/erhicaldcDev/nxpm/main"
 TEMP_DIR="/tmp/nxpm_bootstrap"
+SRC_REPO_URL="https://raw.githubusercontent.com/erhicaldcDev/nxpm/refs/heads/main/src/"
 
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -28,7 +29,20 @@ curl -s -O https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
 curl -s -O https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
 
 echo -e "${BLUE}:: Downloading NXPM sources...${NC}"
-curl -s -o nxpm.c "$REPO_URL/nxpm.c"
+curl -s -o nxpm.c "$SRC_REPO_URL/builder.c"
+curl -s -o nxpm.c "$SRC_REPO_URL/builder.h"
+curl -s -o nxpm.c "$SRC_REPO_URL/config.h"
+curl -s -o nxpm.c "$SRC_REPO_URL/db.c"
+curl -s -o nxpm.c "$SRC_REPO_URL/db.h"
+curl -s -o nxpm.c "$SRC_REPO_URL/fs.c"
+curl -s -o nxpm.c "$SRC_REPO_URL/fs.h"
+curl -s -o nxpm.c "$SRC_REPO_URL/git.c"
+curl -s -o nxpm.c "$SRC_REPO_URL/git.h"
+curl -s -o nxpm.c "$SRC_REPO_URL/main.c"
+curl -s -o nxpm.c "$SRC_REPO_URL/network.c"
+curl -s -o nxpm.c "$SRC_REPO_URL/network.h"
+curl -s -o nxpm.c "$SRC_REPO_URL/ui.c"
+curl -s -o nxpm.c "$SRC_REPO_URL/ui.h"
 curl -s -o Makefile "$REPO_URL/Makefile"
 
 if [ ! -f "nxpm.c" ] || [ ! -f "Makefile" ]; then
