@@ -11,7 +11,7 @@
 #include "cJSON.h"
 #include <errno.h>
 
-#define NXPM_VERSION "1.3"
+#define NXPM_VERSION "1.4-git"
 
 #define REPO_BASE "https://raw.githubusercontent.com/erhicaldcDev/nxpm/refs/heads/main"
 #define MIRROR_URL REPO_BASE "/mirrorlist/mirrorlist.json"
@@ -21,6 +21,7 @@
 #define DB_PATH "/var/lib/nxpm/installed.json"
 #define MANIFEST_PATH "/var/lib/nxpm/packages.json"
 #define CACHE_DIR "/var/cache/nxpm/sources"
+#define GIT_CACHE_DIR "/var/cache/nxpm/sources/git"
 #define BUILD_DIR "/tmp/nxpm-build"
 #define STAGE_DIR "/tmp/nxpm-build/stage"
 
@@ -39,6 +40,7 @@
 #define ICON_ARROW  "\xE2\x9E\x9C"
 #define ICON_BOX    "\xE2\x96\x88"
 #define ICON_CLOUD  "\xE2\x98\x81"
+#define ICON_GIT    "\xE2\x9B\x93"
 
 void print_banner() {
     printf(CYAN BOLD);
@@ -330,34 +332,63 @@ static void edit_build_commands(cJSON *pkg) {
     log_success("Build configuration updated.");
 }
 
+// .git detector
+static int is_git_url(const char *url) {
+    size_t len = strlen(url);
+    if (len > 4 && strcmp(url + len - 4, ".git") == 0) return 1;
+    return 0;
+}
+
 static void execute_build(cJSON *pkg) {
     char *url = cJSON_GetObjectItemCaseSensitive(pkg, "source_url")->valuestring;
-    char *filename = strrchr(url, '/');
-    if (!filename) log_fail("Invalid source URL");
-    filename++;
-
-    char local_tarball[1024];
-    snprintf(local_tarball, sizeof(local_tarball), "%s/%s", CACHE_DIR, filename);
-
-    ensure_dir(CACHE_DIR);
-    if (access(local_tarball, F_OK) != 0) {
-        log_info("Source not in cache. Downloading...");
-        download_url(url, local_tarball);
-    } else {
-        log_success("Using cached source: %s", filename);
-    }
-
-    log_step("BUILD", "Preparing sandbox...");
+    const char *name = cJSON_GetObjectItemCaseSensitive(pkg, "name")->valuestring;
     char cmd[2048];
+    log_step("BUILD", "Preparing sandbox...");
     snprintf(cmd, sizeof(cmd), "rm -rf %s && mkdir -p %s", BUILD_DIR, BUILD_DIR);
     if (system(cmd) != 0) log_fail("Clean build dir failed");
-
-    snprintf(cmd, sizeof(cmd), "tar -xf %s -C %s", local_tarball, BUILD_DIR);
-    if (system(cmd) != 0) log_fail("Extraction failed");
-
     snprintf(cmd, sizeof(cmd), "rm -rf %s && mkdir -p %s", STAGE_DIR, STAGE_DIR);
     if (system(cmd) != 0) log_fail("Clean stage dir failed");
+    if (is_git_url(url)) {
+        ensure_dir(GIT_CACHE_DIR);
+        char git_cache_path[1024];
+        snprintf(git_cache_path, sizeof(git_cache_path), "%s/%s", GIT_CACHE_DIR, name);
 
+        struct stat st = {0};
+        if (stat(git_cache_path, &st) == 0 && S_ISDIR(st.st_mode)) {
+            log_info(ICON_GIT " Updating cached git repository...");
+            snprintf(cmd, sizeof(cmd), "git -C %s pull", git_cache_path);
+            if (system(cmd) != 0) log_fail("Git pull failed");
+        } else {
+            log_info(ICON_GIT " Cloning git repository...");
+            snprintf(cmd, sizeof(cmd), "git clone --depth 1 %s %s", url, git_cache_path);
+            if (system(cmd) != 0) log_fail("Git clone failed");
+        }
+
+        char build_src_path[1024];
+        snprintf(build_src_path, sizeof(build_src_path), "%s/%s", BUILD_DIR, name);
+        snprintf(cmd, sizeof(cmd), "mkdir -p %s && cp -r %s/. %s/", build_src_path, git_cache_path, build_src_path);
+        if (system(cmd) != 0) log_fail("Failed to copy git source to build dir");
+
+    } 
+    else {
+        char *filename = strrchr(url, '/');
+        if (!filename) log_fail("Invalid source URL");
+        filename++;
+
+        char local_tarball[1024];
+        snprintf(local_tarball, sizeof(local_tarball), "%s/%s", CACHE_DIR, filename);
+
+        ensure_dir(CACHE_DIR);
+        if (access(local_tarball, F_OK) != 0) {
+            log_info("Source not in cache. Downloading...");
+            download_url(url, local_tarball);
+        } else {
+            log_success("Using cached source: %s", filename);
+        }
+
+        snprintf(cmd, sizeof(cmd), "tar -xf %s -C %s", local_tarball, BUILD_DIR);
+        if (system(cmd) != 0) log_fail("Extraction failed");
+    }
     char src_dir[1024] = {0};
     struct dirent *de;
     DIR *dr = opendir(BUILD_DIR);
@@ -565,12 +596,10 @@ int main(int argc, char *argv[]) {
         print_banner();
         printf("Usage: nxpm [command] <args>\n\n");
         printf("Commands:\n");
-        printf("  update                     Fetch latest package list\n");
-        printf("  update --check-nxpm-update Check for self-updates\n");
-        printf("  install [--edit-conf] <pkg> Install a package\n");
+        printf("  update [--check-nxpm-update] Update mirrorlist [check app self-update]\n");
+        printf("  install [--edit-conf] <pkg> Install a package [edit ./configure and make configuration]\n");
         printf("  remove <pkg>               Uninstall a package\n");
-        printf("  list                       Show installed packages\n");
-        printf("  list --online              Show all available packages\n");
+        printf("  list [--online]            Show installed packages [with online]\n");
         return 1;
     }
 
