@@ -2,10 +2,10 @@
 # NXPM Bootstrap Script
 
 set -e
+REPO_BASE="https://raw.githubusercontent.com/erhicaldcDev/nxpm/main"
+SRC_URL="${REPO_BASE}/src"
 
-REPO_URL="https://raw.githubusercontent.com/erhicaldcDev/nxpm/main"
 TEMP_DIR="/tmp/nxpm_bootstrap"
-SRC_REPO_URL="https://raw.githubusercontent.com/erhicaldcDev/nxpm/refs/heads/main/src/"
 
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -19,42 +19,39 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-echo -e "${BLUE}:: Creating temporary directory...${NC}"
+echo -e "${BLUE}:: Creating temporary directory structure...${NC}"
 rm -rf "$TEMP_DIR"
-mkdir -p "$TEMP_DIR"
+mkdir -p "$TEMP_DIR/src"
 cd "$TEMP_DIR"
 
 echo -e "${BLUE}:: Downloading cJSON dependency...${NC}"
-curl -s -O https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
-curl -s -O https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
+curl -s -o src/cJSON.c https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.c
+curl -s -o src/cJSON.h https://raw.githubusercontent.com/DaveGamble/cJSON/master/cJSON.h
 
 echo -e "${BLUE}:: Downloading NXPM sources...${NC}"
-curl -s -o nxpm.c "$SRC_REPO_URL/builder.c"
-curl -s -o nxpm.c "$SRC_REPO_URL/builder.h"
-curl -s -o nxpm.c "$SRC_REPO_URL/config.h"
-curl -s -o nxpm.c "$SRC_REPO_URL/db.c"
-curl -s -o nxpm.c "$SRC_REPO_URL/db.h"
-curl -s -o nxpm.c "$SRC_REPO_URL/fs.c"
-curl -s -o nxpm.c "$SRC_REPO_URL/fs.h"
-curl -s -o nxpm.c "$SRC_REPO_URL/git.c"
-curl -s -o nxpm.c "$SRC_REPO_URL/git.h"
-curl -s -o nxpm.c "$SRC_REPO_URL/main.c"
-curl -s -o nxpm.c "$SRC_REPO_URL/network.c"
-curl -s -o nxpm.c "$SRC_REPO_URL/network.h"
-curl -s -o nxpm.c "$SRC_REPO_URL/ui.c"
-curl -s -o nxpm.c "$SRC_REPO_URL/ui.h"
-curl -s -o Makefile "$REPO_URL/Makefile"
 
-if [ ! -f "nxpm.c" ] || [ ! -f "Makefile" ]; then
-    echo -e "${RED}Error: Failed to download source files. Check the repository URL.${NC}"
-    exit 1
-fi
+FILES="builder.c builder.h config.h db.c db.h fs.c fs.h git.c git.h main.c network.c network.h ui.c ui.h"
+
+for file in $FILES; do
+    echo "   Fetching $file..."
+    curl -s -f -o "src/$file" "$SRC_URL/$file" || {
+        echo -e "${RED}Error downloading src/$file${NC}"
+        exit 1
+    }
+done
+
+echo "   Fetching Makefile..."
+curl -s -f -o Makefile "$REPO_BASE/Makefile" || {
+     echo -e "${RED}Error downloading Makefile${NC}"
+     exit 1
+}
 
 echo -e "${BLUE}:: Compiling...${NC}"
 if ! command -v make &> /dev/null; then
     echo -e "${RED}Error: 'make' is not installed.${NC}"
     exit 1
 fi
+
 make
 
 echo -e "${BLUE}:: Installing to /usr/local/bin...${NC}"
