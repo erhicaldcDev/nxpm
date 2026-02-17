@@ -76,6 +76,13 @@ Run the following command in your terminal:
 curl -sL https://raw.githubusercontent.com/erhicaldcDev/nxpm/main/bootstrap.sh | sudo bash
 ```
 
+You can also compile it manually
+```bash
+git clone https://github.com/erhicaldcDev/nxpm
+cd nxpm
+make && sudo make install
+```
+
 ## ⚙️ Configuration
 
 The package manager looks for a remote mirror list defined in its configuration. Ensure your `MIRROR_LIST_URL` points to a valid JSON file.
